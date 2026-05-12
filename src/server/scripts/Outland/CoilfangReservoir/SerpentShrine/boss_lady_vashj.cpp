@@ -125,7 +125,7 @@ struct boss_lady_vashj : public BossAI
         switch (summon->GetEntry())
         {
             case WORLD_TRIGGER:
-                summon->CastSpell(summon, SPELL_MAGIC_BARRIER);
+                summon->CastSpell(me, SPELL_MAGIC_BARRIER);
                 break;
             case NPC_ENCHANTED_ELEMENTAL:
                 summon->GetMotionMaster()->MoveFollow(me, 0.0f, 0.0f, MOTION_SLOT_ACTIVE, false, false);
