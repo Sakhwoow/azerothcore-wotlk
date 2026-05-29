@@ -365,6 +365,13 @@ public:
                     // blizzard casts this spell 7 times initially (confirmed in sniff)
                     for (uint8 i = 0; i < 7; ++i)
                         summon->CastSpell(summon, SPELL_GROW, true);
+                    // Apply auras that allow the Mutated Abomination to use Eat Ooze on this puddle.
+                    // HandleScript in spell_putricide_slime_puddle was supposed to do this but
+                    // ScaleRange filters the puddle out of its own target list.
+                    if (SpellInfo const* eatOoze1 = sSpellMgr->GetSpellInfo(70346))
+                        Aura::TryRefreshStackOrCreate(eatOoze1, MAX_EFFECT_MASK, summon, summon);
+                    if (SpellInfo const* eatOoze2 = sSpellMgr->GetSpellInfo(72456))
+                        Aura::TryRefreshStackOrCreate(eatOoze2, MAX_EFFECT_MASK, summon, summon);
                     return;
                 case NPC_GAS_CLOUD:
                     // no possible aura seen in sniff adding the aurastate
