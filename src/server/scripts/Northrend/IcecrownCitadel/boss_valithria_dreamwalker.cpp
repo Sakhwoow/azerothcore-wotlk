@@ -193,6 +193,23 @@ private:
     Milliseconds _despawnTime;
 };
 
+class ValithriaSuccessEvent : public BasicEvent
+{
+public:
+    explicit ValithriaSuccessEvent(Creature* valithria, InstanceScript* instance)
+        : _valithria(valithria), _instance(instance) {}
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        _valithria->CastSpell(_valithria, SPELL_DREAM_SLIP, false);
+        return true;
+    }
+
+private:
+    Creature* _valithria;
+    InstanceScript* _instance;
+};
+
 class AuraRemoveEvent : public BasicEvent
 {
 public:
@@ -345,7 +362,7 @@ public:
                 me->RemoveAurasDueToSpell(SPELL_CORRUPTION_VALITHRIA);
                 me->CastSpell(me, SPELL_ACHIEVEMENT_CHECK, true);
                 me->CastSpell((Unit*)nullptr, SPELL_DREAMWALKERS_RAGE, false);
-                _events.ScheduleEvent(EVENT_DREAM_SLIP, 3500ms);
+                me->m_Events.AddEventAtOffset(new ValithriaSuccessEvent(me, _instance), 3500ms);
                 if (Creature* lichKing = ObjectAccessor::GetCreature(*me, _instance->GetGuidData(DATA_VALITHRIA_LICH_KING)))
                     lichKing->AI()->EnterEvadeMode();
             }
