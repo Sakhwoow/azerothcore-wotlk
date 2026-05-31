@@ -339,6 +339,7 @@ public:
             if (me->HealthAbovePctHealed(100, heal) && !_done)
             {
                 _done = true;
+                _instance->SetBossState(DATA_VALITHRIA_DREAMWALKER, DONE);
                 Talk(SAY_VALITHRIA_SUCCESS);
                 _instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
                 me->RemoveAurasDueToSpell(SPELL_CORRUPTION_VALITHRIA);
