@@ -271,18 +271,17 @@ public:
         uint32 queuedSessionCount = sWorldSessionMgr->GetQueuedSessionCount();
         uint32 connPeak = sWorldSessionMgr->GetMaxActiveSessionCount();
 
-        handler->PSendSysMessage("{}", GitRevision::GetFullVersion());
         if (!queuedSessionCount)
-            handler->PSendSysMessage("Connected players: {}. Characters in world: {}.", activeSessionCount, playerCount);
+            handler->PSendSysMessage("Игроков онлайн: {}. Персонажей в мире: {}.", activeSessionCount, playerCount);
         else
-            handler->PSendSysMessage("Connected players: {}. Characters in world: {}. Queue: {}.", activeSessionCount, playerCount, queuedSessionCount);
+            handler->PSendSysMessage("Игроков онлайн: {}. Персонажей в мире: {}. Очередь: {}.", activeSessionCount, playerCount, queuedSessionCount);
 
-        handler->PSendSysMessage("Connection peak: {}.", connPeak);
-        handler->PSendSysMessage(LANG_UPTIME, secsToTimeString(GameTime::GetUptime().count()));
-        handler->PSendSysMessage("Update time diff: {}ms. Last {} diffs summary:", sWorldUpdateTime.GetLastUpdateTime(), sWorldUpdateTime.GetDatasetSize());
-        handler->PSendSysMessage("|- Mean: {}ms", sWorldUpdateTime.GetAverageUpdateTime());
-        handler->PSendSysMessage("|- Median: {}ms", sWorldUpdateTime.GetPercentile(50));
-        handler->PSendSysMessage("|- Percentiles (95, 99, max): {}ms, {}ms, {}ms",
+        handler->PSendSysMessage("Пик подключений: {}.", connPeak);
+        handler->PSendSysMessage("Время работы сервера: {}", secsToTimeString(GameTime::GetUptime().count()));
+        handler->PSendSysMessage("Разница времени обновления: {}мс. Последние {} значений:", sWorldUpdateTime.GetLastUpdateTime(), sWorldUpdateTime.GetDatasetSize());
+        handler->PSendSysMessage("|- Среднее: {}мс", sWorldUpdateTime.GetAverageUpdateTime());
+        handler->PSendSysMessage("|- Медиана: {}мс", sWorldUpdateTime.GetPercentile(50));
+        handler->PSendSysMessage("|- Перцентили (95, 99, макс): {}мс, {}мс, {}мс",
                                  sWorldUpdateTime.GetPercentile(95),
                                  sWorldUpdateTime.GetPercentile(99),
                                  sWorldUpdateTime.GetPercentile(100));
