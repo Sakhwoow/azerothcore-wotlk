@@ -36,6 +36,7 @@ enum GuildHook
     GUILDHOOK_ON_EVENT,
     GUILDHOOK_ON_BANK_EVENT,
     GUILDHOOK_CAN_GUILD_SEND_BANK_LIST,
+    GUILDHOOK_CAN_ADD_MEMBER,
     GUILDHOOK_END
 };
 
@@ -79,6 +80,9 @@ public:
     virtual void OnBankEvent(Guild* /*guild*/, uint8 /*eventType*/, uint8 /*tabId*/, ObjectGuid::LowType /*playerGuid*/, uint32 /*itemOrMoney*/, uint16 /*itemStackCount*/, uint8 /*destTabId*/) { }
 
     [[nodiscard]] virtual bool CanGuildSendBankList(Guild const* /*guild*/, WorldSession* /*session*/, uint8 /*tabId*/, bool /*sendAllSlots*/) { return true; }
+
+    // Called before a member is added; return false to block the addition.
+    [[nodiscard]] virtual bool CanGuildAddMember(Guild* /*guild*/, Player* /*player*/, uint8& /*plRank*/) { return true; }
 };
 
 #endif

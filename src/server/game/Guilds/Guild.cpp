@@ -1117,6 +1117,7 @@ bool Guild::Create(Player* pLeader, std::string_view name)
 // Disbands guild and deletes all related data from database
 void Guild::Disband()
 {
+    LOG_ERROR("guild", "Guild::Disband() called for guild '{}' (id={})", m_name, m_id);
     // Call scripts before guild data removed from database
     sScriptMgr->OnGuildDisband(this);
 
@@ -2248,6 +2249,9 @@ bool Guild::AddMember(ObjectGuid guid, uint8 rankId)
             return false;
     }
     else if (sCharacterCache->GetCharacterGuildIdByGuid(guid) != 0)
+        return false;
+
+    if (!sScriptMgr->CanGuildAddMember(this, player, rankId))
         return false;
 
     // Remove all player signs from another petitions

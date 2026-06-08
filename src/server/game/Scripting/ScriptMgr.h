@@ -526,6 +526,7 @@ public: /* GuildScript */
     void OnGuildEvent(Guild* guild, uint8 eventType, ObjectGuid::LowType playerGuid1, ObjectGuid::LowType playerGuid2, uint8 newRank);
     void OnGuildBankEvent(Guild* guild, uint8 eventType, uint8 tabId, ObjectGuid::LowType playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
     bool CanGuildSendBankList(Guild const* guild, WorldSession* session, uint8 tabId, bool sendAllSlots);
+    bool CanGuildAddMember(Guild* guild, Player* player, uint8& plRank);
 
 public: /* GroupScript */
     void OnGroupAddMember(Group* group, ObjectGuid guid);
