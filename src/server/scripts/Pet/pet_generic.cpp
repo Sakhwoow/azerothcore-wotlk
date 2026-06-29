@@ -486,8 +486,10 @@ struct npc_pet_gen_valkyr_guardian : public ScriptedAI
             return;
         }
 
-        if (me->isAttackReady() && !me->GetVictim()->HasBreakableByDamageCrowdControlAura())
-            DoSpellAttackIfReady(me->GetCreatureTemplate()->spells[0]);
+        if (me->isAttackReady())
+            if (Unit* victim = me->GetVictim())
+                if (!victim->HasBreakableByDamageCrowdControlAura())
+                    DoSpellAttackIfReady(me->GetCreatureTemplate()->spells[0]);
     }
 };
 
