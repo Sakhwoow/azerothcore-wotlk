@@ -164,6 +164,16 @@ void CasterAI::UpdateAI(uint32 diff)
     if (me->HasUnitState(UNIT_STATE_CASTING))
         return;
 
+    // Casters stand still when target is within cast range; only chase when target leaves range.
+    if (m_attackDist > MELEE_RANGE && !me->HasUnitState(UNIT_STATE_LOST_CONTROL))
+    {
+        bool targetInRange = me->IsWithinCombatRange(me->GetVictim(), m_attackDist);
+        if (!targetInRange && me->GetMotionMaster()->GetCurrentMovementGeneratorType() != CHASE_MOTION_TYPE)
+            me->GetMotionMaster()->MoveChase(me->GetVictim(), m_attackDist);
+        else if (targetInRange && me->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+            me->GetMotionMaster()->MoveIdle();
+    }
+
     if (uint32 spellId = events.ExecuteEvent())
     {
         DoCast(spellId);
