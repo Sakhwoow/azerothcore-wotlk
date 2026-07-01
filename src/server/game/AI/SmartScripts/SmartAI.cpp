@@ -1066,8 +1066,9 @@ void SmartAI::InitializeAI()
             SetMainSpell(bestSpell);
     }
 
-    // Final fallback: caster-class creatures with no explicit spell data default to 30 yards
-    if (!_currentRangeMode)
+    // Final fallback: caster-class creatures with no explicit spell data default to 30 yards.
+    // Only for open-world mobs — dungeon/raid trash already has spell data or SmartCast flags.
+    if (!_currentRangeMode && !me->GetMap()->Instanceable())
     {
         uint32 creatureClass = me->GetCreatureTemplate()->unit_class;
         if (creatureClass == CLASS_MAGE || creatureClass == CLASS_PRIEST || creatureClass == CLASS_WARLOCK)
