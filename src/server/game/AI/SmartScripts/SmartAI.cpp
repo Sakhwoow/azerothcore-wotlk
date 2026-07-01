@@ -1043,6 +1043,40 @@ void SmartAI::InitializeAI()
         }
     }
 
+    // Fallback: check creature_template spells (same as CasterAI does)
+    if (!_currentRangeMode)
+    {
+        float bestRange = 0.0f;
+        uint32 bestSpell = 0;
+        for (uint32 i = 0; i < MAX_CREATURE_SPELLS; ++i)
+        {
+            if (!me->m_spells[i])
+                continue;
+            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(me->m_spells[i]);
+            if (!spellInfo || spellInfo->IsPositive())
+                continue;
+            float maxRange = spellInfo->GetMaxRange(false);
+            if (maxRange > MELEE_RANGE && maxRange > bestRange)
+            {
+                bestRange = maxRange;
+                bestSpell = me->m_spells[i];
+            }
+        }
+        if (bestSpell)
+            SetMainSpell(bestSpell);
+    }
+
+    // Final fallback: caster-class creatures with no explicit spell data default to 30 yards
+    if (!_currentRangeMode)
+    {
+        uint32 creatureClass = me->GetCreatureTemplate()->unit_class;
+        if (creatureClass == CLASS_MAGE || creatureClass == CLASS_PRIEST || creatureClass == CLASS_WARLOCK)
+        {
+            _attackDistance = 30.0f;
+            _currentRangeMode = true;
+        }
+    }
+
     if (!me->isDead())
     {
         mJustReset = true;
