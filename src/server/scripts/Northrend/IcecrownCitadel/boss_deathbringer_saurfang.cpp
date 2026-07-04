@@ -403,7 +403,7 @@ public:
                 Map::PlayerList const& pl = me->GetMap()->GetPlayers();
                 for (Map::PlayerList::const_iterator itr = pl.begin(); itr != pl.end(); ++itr)
                     if (Player* p = itr->GetSource())
-                        if (p->GetTransport())
+                        if (p->GetTransport() && !p->GetSession()->IsBot())
                         {
                             EnterEvadeMode(EVADE_REASON_OTHER);
                             return;
