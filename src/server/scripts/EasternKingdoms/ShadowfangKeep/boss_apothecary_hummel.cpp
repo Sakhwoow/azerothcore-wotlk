@@ -101,6 +101,7 @@ public:
 
         void Reset() override
         {
+            scheduler.CancelAll();
             _Reset();
             _deadCount = 0;
             _isDead = false;
