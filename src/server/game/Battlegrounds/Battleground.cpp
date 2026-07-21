@@ -1387,7 +1387,7 @@ void Battleground::ReadyMarkerClicked(Player* p)
     readyMarkerClickedSet.insert(p->GetGUID());
     uint32 count = readyMarkerClickedSet.size();
     uint32 req = ArenaTeam::GetReqPlayersForType(GetArenaType());
-    ChatHandler(p->GetSession()).SendNotification("You are marked as ready {}/{}", count, req);
+    ChatHandler(p->GetSession()).SendNotification("Вы готовы {}/{}", count, req);
     if (count == req)
     {
         m_Events |= BG_STARTING_EVENT_2;
