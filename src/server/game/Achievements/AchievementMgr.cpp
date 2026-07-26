@@ -1781,8 +1781,6 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                         continue;
 
                     // Check map id requirement
-                    LOG_DEBUG("achievement", "WIN_ARENA criteria {} (achievement {}): miscValue1(mapId)={} vs dbc mapID={} count={}",
-                        achievementCriteria->ID, achievementCriteria->referredAchievement, miscValue1, achievementCriteria->win_arena.mapID, achievementCriteria->win_arena.count);
                     if (!achievementCriteria->win_arena.mapID || miscValue1 == achievementCriteria->win_arena.mapID)
                         SetCriteriaProgress(achievementCriteria, 1, PROGRESS_ACCUMULATE);
                     break;

@@ -210,7 +210,7 @@ void Arena::EndBattleground(TeamId winnerTeamId)
     {
         uint32 startDelay = GetStartDelayTime();
         bool bValidArena = GetStatus() == STATUS_IN_PROGRESS && GetStartTime() >= startDelay + 15000; // pussywizard: only if arena lasted at least 15 secs
-        LOG_INFO("bg.arena", "Arena EndBattleground: bValidArena={} startDelay={} startTime={} mapId={}", bValidArena, startDelay, GetStartTime(), GetMapId());
+
 
         uint32 loserTeamRating = 0;
         uint32 loserMatchmakerRating = 0;
