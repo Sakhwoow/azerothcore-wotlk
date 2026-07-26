@@ -1779,7 +1779,9 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                         continue;
 
                     // Check map id requirement
-                    if (miscValue1 == achievementCriteria->win_arena.mapID)
+                    LOG_DEBUG("achievement", "WIN_ARENA criteria {}: miscValue1(mapId)={} vs dbc mapID={} count={}",
+                        achievementCriteria->ID, miscValue1, achievementCriteria->win_arena.mapID, achievementCriteria->win_arena.count);
+                    if (!achievementCriteria->win_arena.mapID || miscValue1 == achievementCriteria->win_arena.mapID)
                         SetCriteriaProgress(achievementCriteria, 1, PROGRESS_ACCUMULATE);
                     break;
                 }
@@ -1977,7 +1979,7 @@ bool AchievementMgr::IsCompletedCriteria(AchievementCriteriaEntry const* achieve
         case ACHIEVEMENT_CRITERIA_TYPE_ON_LOGIN:
             return true;
         case ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA:
-            return achievementCriteria->win_arena.count && progress->counter >= achievementCriteria->win_arena.count;
+            return progress->counter >= (achievementCriteria->win_arena.count ? achievementCriteria->win_arena.count : 1);
         case ACHIEVEMENT_CRITERIA_TYPE_OWN_RANK:
             return true;
         // handle all statistic-only criteria here
