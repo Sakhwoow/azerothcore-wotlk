@@ -458,76 +458,91 @@ private:
 // npc_mistress_nagmara
 enum NagmaraData
 {
-    QUEST_POTION_LOVE       = 4201,
-    SAY_NAGMARA_ROCKNOT     = 1,   // creature_text group 1: "Hey, Rocknot!"
-    SAY_NAGMARA_LETS_GO     = 2,   // creature_text group 2: "Let's go, honey."
-    POINT_NAGMARA_DOOR      = 1,
+    QUEST_POTION_LOVE    = 4201,
+    SAY_NAGMARA_ROCKNOT  = 1,
+    SAY_NAGMARA_LETS_GO  = 2,
+    POINT_NAGMARA_DOOR   = 1,
 };
 
 static Position const NagmaraDoorPos = { 870.8f, -225.0f, -43.75f, 3.14f };
 
-struct npc_nagmara : public ScriptedAI
+class npc_nagmara : public CreatureScript
 {
-    npc_nagmara(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()), _started(false) {}
+public:
+    npc_nagmara() : CreatureScript("npc_nagmara") { }
 
-    void Reset() override
+    bool OnGossipHello(Player* player, Creature* creature) override
     {
-        _started = false;
-    }
+        if (creature->IsQuestGiver())
+            player->PrepareQuestMenu(creature->GetGUID());
 
-    void StartDoorSequence()
-    {
-        if (_started)
-            return;
-        if (_instance && _instance->GetData(TYPE_BAR) == DONE)
-            return;
-        _started = true;
-        me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-        me->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
-        Talk(SAY_NAGMARA_ROCKNOT);
-        me->GetMotionMaster()->MovePoint(POINT_NAGMARA_DOOR, NagmaraDoorPos);
-    }
-
-    void MovementInform(uint32 type, uint32 id) override
-    {
-        if (type != POINT_MOTION_TYPE || id != POINT_NAGMARA_DOOR || !_instance)
-            return;
-
-        Talk(SAY_NAGMARA_LETS_GO);
-        if (GameObject* door = _instance->instance->GetGameObject(_instance->GetGuidData(DATA_GO_BAR_DOOR)))
-            door->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-        _instance->SetData(TYPE_BAR, DONE);
-    }
-
-    bool OnGossipHello(Player* player) override
-    {
-        if (me->IsQuestGiver())
-            player->PrepareQuestMenu(me->GetGUID());
-        if (player->GetQuestRewardStatus(QUEST_POTION_LOVE) && (!_instance || _instance->GetData(TYPE_BAR) != DONE))
+        InstanceScript* instance = creature->GetInstanceScript();
+        if (player->GetQuestRewardStatus(QUEST_POTION_LOVE) && (!instance || instance->GetData(TYPE_BAR) != DONE))
             AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Let's open the bar passage together.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
-        SendGossipMenuFor(player, 9500, me->GetGUID());
+
+        SendGossipMenuFor(player, 9500, creature->GetGUID());
         return true;
     }
 
-    bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action) override
     {
-        uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
         ClearGossipMenuFor(player);
         CloseGossipMenuFor(player);
         if (action == GOSSIP_ACTION_INFO_DEF + 1)
-            StartDoorSequence();
+            creature->AI()->SetData(1, 1);
         return true;
     }
 
-    void sQuestReward(Player* /*player*/, Quest const* quest, uint32 /*opt*/) override
+    struct npc_nagmara_AI : public ScriptedAI
     {
-        if (quest->GetQuestId() == QUEST_POTION_LOVE)
-            StartDoorSequence();
-    }
+        npc_nagmara_AI(Creature* creature) : ScriptedAI(creature), _instance(creature->GetInstanceScript()), _started(false) {}
 
-private:
-    InstanceScript* _instance;
-    bool _started;
+        void Reset() override { _started = false; }
+
+        void StartDoorSequence()
+        {
+            if (_started)
+                return;
+            if (_instance && _instance->GetData(TYPE_BAR) == DONE)
+                return;
+            _started = true;
+            me->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+            me->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
+            Talk(SAY_NAGMARA_ROCKNOT);
+            me->GetMotionMaster()->MovePoint(POINT_NAGMARA_DOOR, NagmaraDoorPos);
+        }
+
+        void SetData(uint32 /*type*/, uint32 /*data*/) override
+        {
+            StartDoorSequence();
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE || id != POINT_NAGMARA_DOOR || !_instance)
+                return;
+
+            Talk(SAY_NAGMARA_LETS_GO);
+            if (GameObject* door = _instance->instance->GetGameObject(_instance->GetGuidData(DATA_GO_BAR_DOOR)))
+                door->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+            _instance->SetData(TYPE_BAR, DONE);
+        }
+
+        void sQuestReward(Player* /*player*/, Quest const* quest, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == QUEST_POTION_LOVE)
+                StartDoorSequence();
+        }
+
+    private:
+        InstanceScript* _instance;
+        bool _started;
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return GetBlackrockDepthsAI<npc_nagmara_AI>(creature);
+    }
 };
 
 // npc_rocknot
@@ -666,7 +681,7 @@ void AddSC_blackrock_depths()
     new at_ring_of_law();
     RegisterBlackrockDepthsCreatureAI(npc_grimstone);
     RegisterBlackrockDepthsCreatureAI(npc_phalanx);
-    RegisterBlackrockDepthsCreatureAI(npc_nagmara);
+    new npc_nagmara();
     RegisterBlackrockDepthsCreatureAI(npc_rocknot);
     RegisterBlackrockDepthsCreatureAI(brd_ironhand_guardian);
 }
