@@ -343,6 +343,8 @@ struct instance_blackrock_depths : public InstanceScript
                 break;
             case GO_BAR_DOOR:
                 GoBarDoorGUID = go->GetGUID();
+                if (GetData(TYPE_BAR) == DONE)
+                    HandleGameObject(ObjectGuid::Empty, true, go);
                 break;
             case GO_TOMB_ENTER:
                 GoTombEnterGUID = go->GetGUID();
