@@ -120,6 +120,9 @@ void ChannelMgr::LoadChannels()
 
 Channel* ChannelMgr::GetJoinChannel(std::string const& name, uint32 channelId)
 {
+    if (name.empty())
+        return nullptr;
+
     std::wstring wname;
     Utf8toWStr(name, wname);
     wstrToLower(wname);
