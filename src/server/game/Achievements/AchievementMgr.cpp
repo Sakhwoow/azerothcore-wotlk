@@ -1774,8 +1774,10 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
             case ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA: // This also behaves like ACHIEVEMENT_CRITERIA_TYPE_WIN_RATED_ARENA
                 {
                     // those requirements couldn't be found in the dbc
+                    // Pass player as both source and target: WIN_ARENA data reqs (e.g. T_LEVEL minlevel=80)
+                    // check the winning player's own level, not an opponent unit.
                     AchievementCriteriaDataSet const* data = sAchievementMgr->GetCriteriaDataSet(achievementCriteria);
-                    if (data && !data->Meets(GetPlayer(), nullptr))
+                    if (data && !data->Meets(GetPlayer(), GetPlayer()))
                         continue;
 
                     // Check map id requirement
