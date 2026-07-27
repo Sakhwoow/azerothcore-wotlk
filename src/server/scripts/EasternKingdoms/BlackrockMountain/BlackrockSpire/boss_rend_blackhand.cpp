@@ -186,7 +186,8 @@ struct boss_rend_blackhand : public BossAI
 
     void SummonedCreatureDespawn(Creature* creature) override
     {
-        if (creature->IsAlive() && !summons.IsAnyCreatureInCombat())
+        if (creature->IsAlive() && !summons.IsAnyCreatureInCombat()
+            && instance->GetBossState(DATA_WARCHIEF_REND_BLACKHAND) != DONE)
             instance->SetBossState(DATA_WARCHIEF_REND_BLACKHAND, FAIL);
 
         BossAI::SummonedCreatureDespawn(creature);
