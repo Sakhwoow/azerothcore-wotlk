@@ -1442,8 +1442,9 @@ uint32 Player::CalculateQuestRewardXP(Quest const* quest)
     // apply world quest rate
     uint32 xp = uint32(quest->XPValue(level) * GetQuestRate(quest->IsDFQuest()));
 
-    // handle SPELL_AURA_MOD_XP_QUEST_PCT auras
+    // handle XP-boost auras: quest-specific (291) and generic (200, used by XP elixirs)
     xp *= GetTotalAuraMultiplier(SPELL_AURA_MOD_XP_QUEST_PCT);
+    xp *= GetTotalAuraMultiplier(SPELL_AURA_MOD_XP_PCT);
 
     return xp;
 }
