@@ -8561,7 +8561,15 @@ void Spell::InitEffectExecuteData(uint8 effIndex)
 void Spell::CheckEffectExecuteData()
 {
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-        ASSERT(!m_effectExecuteData[i]);
+    {
+        if (m_effectExecuteData[i])
+        {
+            LOG_ERROR("spells", "Spell::CheckEffectExecuteData: non-null m_effectExecuteData[{}] for spell {} (Id: {}). Leaking memory fixed.",
+                i, m_spellInfo->SpellName[0], m_spellInfo->Id);
+            delete m_effectExecuteData[i];
+            m_effectExecuteData[i] = nullptr;
+        }
+    }
 }
 
 void Spell::LoadScripts()
