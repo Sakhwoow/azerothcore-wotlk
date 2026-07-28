@@ -70,6 +70,13 @@ void ChannelMgr::LoadChannels()
         TeamId team = TeamId(fields[2].Get<uint32>());
         std::string password = fields[5].Get<std::string>();
 
+        if (channelName.empty())
+        {
+            LOG_ERROR("server.loading", "Failed to load channel id {} from database - empty channel name. Deleted.", channelDBId);
+            toDelete.emplace_back(channelName, team);
+            continue;
+        }
+
         std::wstring channelWName;
         if (!Utf8toWStr(channelName, channelWName))
         {
@@ -124,7 +131,8 @@ Channel* ChannelMgr::GetJoinChannel(std::string const& name, uint32 channelId)
         return nullptr;
 
     std::wstring wname;
-    Utf8toWStr(name, wname);
+    if (!Utf8toWStr(name, wname))
+        return nullptr;
     wstrToLower(wname);
 
     ChannelMap::const_iterator i = channels.find(wname);
@@ -142,7 +150,8 @@ Channel* ChannelMgr::GetJoinChannel(std::string const& name, uint32 channelId)
 Channel* ChannelMgr::GetChannel(std::string const& name, Player* player, bool pkt)
 {
     std::wstring wname;
-    Utf8toWStr(name, wname);
+    if (!Utf8toWStr(name, wname))
+        return nullptr;
     wstrToLower(wname);
 
     ChannelMap::const_iterator i = channels.find(wname);
