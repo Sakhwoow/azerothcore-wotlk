@@ -2244,7 +2244,11 @@ void InstanceMap::PermBindAllPlayers()
 
 void InstanceMap::UnloadAll()
 {
-    ASSERT(!HavePlayers());
+    if (HavePlayers())
+    {
+        LOG_ERROR("maps", "InstanceMap::UnloadAll: instance {} (InstanceId: {}) still has players during unload, teleporting them home.", GetId(), GetInstanceId());
+        RemoveAllPlayers();
+    }
 
     if (m_resetAfterUnload)
     {
