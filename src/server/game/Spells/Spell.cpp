@@ -17,6 +17,7 @@
 
 #include "Spell.h"
 #include "ArenaSpectator.h"
+#include "CharacterCache.h"
 #include "BattlefieldMgr.h"
 #include "Battleground.h"
 #include "CharmInfo.h"
@@ -1994,12 +1995,23 @@ void Spell::SelectEffectTypeImplicitTargets(uint8 effIndex)
         case SPELL_EFFECT_SUMMON_PLAYER:
             if (m_caster->IsPlayer() && m_caster->ToPlayer()->GetTarget())
             {
-                WorldObject* target = ObjectAccessor::FindPlayer(m_caster->ToPlayer()->GetTarget());
+                ObjectGuid targetGuid = m_caster->ToPlayer()->GetTarget();
+                WorldObject* target = ObjectAccessor::FindPlayer(targetGuid);
 
                 CallScriptObjectTargetSelectHandlers(target, SpellEffIndex(effIndex), SpellImplicitTargetInfo());
 
                 if (target && target->ToPlayer())
                     AddUnitTarget(target->ToUnit(), 1 << effIndex, false);
+                else if (!target && m_spellInfo->Effects[effIndex].Effect == SPELL_EFFECT_SUMMON_RAF_FRIEND)
+                {
+                    std::string friendName;
+                    if (!sCharacterCache->GetCharacterNameByGuid(targetGuid, friendName))
+                        friendName = "";
+                    WorldPacket data(SMSG_REFER_A_FRIEND_FAILURE, 5 + friendName.size());
+                    data << uint32(ERR_REFER_A_FRIEND_SUMMON_OFFLINE_S);
+                    data << friendName;
+                    m_caster->ToPlayer()->GetSession()->SendPacket(&data);
+                }
             }
             return;
         default:
