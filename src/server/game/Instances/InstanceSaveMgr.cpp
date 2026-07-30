@@ -90,6 +90,12 @@ InstanceSave* InstanceSaveMgr::AddInstanceSave(uint32 mapId, uint32 instanceId, 
     if (entry->map_type == MAP_RAID || difficulty > DUNGEON_DIFFICULTY_NORMAL)
     {
         resetTime = GetResetTimeFor(mapId, difficulty);
+        if (resetTime == 0)
+        {
+            // instance_reset has no entry for this map/difficulty — fall back to 7 days
+            resetTime = GameTime::GetGameTime().count() + static_cast<long long>(7) * DAY;
+            LOG_WARN("instance.save", "InstanceSaveMgr::AddInstanceSave: no reset time for map {} difficulty {}, defaulting to 7 days", mapId, difficulty);
+        }
         extendedResetTime = GetExtendedResetTimeFor(mapId, difficulty);
     }
     else
