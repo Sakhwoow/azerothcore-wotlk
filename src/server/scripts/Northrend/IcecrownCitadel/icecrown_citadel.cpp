@@ -2212,6 +2212,12 @@ struct DarkFallenAI : public ScriptedAI
             TriggerGuid = guid;
     }
 
+    void JustDied(Unit* /*killer*/) override
+    {
+        if (InstanceScript* instance = me->GetInstanceScript())
+            instance->SetData(DATA_BPC_TRASH_DIED, 0);
+    }
+
     void EnterEvadeMode(EvadeReason why) override
     {
         ScriptedAI::EnterEvadeMode(why);
