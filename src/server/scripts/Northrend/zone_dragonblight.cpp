@@ -1133,11 +1133,11 @@ public:
                 {
                     c->RemoveAllAuras();
                     c->CastSpell(c, SPELL_SAC_HOLY_ZONE_AURA, true);
-                    if (GameObject* go = me->FindNearestGameObject(GO_SAC_LIGHTS_VENGEANCE_3, 150.0f))
-                        go->RemoveGameObjectFlag(GO_FLAG_NOT_SELECTABLE);
-                    playerGUID.Clear();
-                    events.RescheduleEvent(2, 1min);
                 }
+                if (GameObject* go = me->FindNearestGameObject(GO_SAC_LIGHTS_VENGEANCE_3, 150.0f))
+                    go->RemoveGameObjectFlag(GO_FLAG_NOT_SELECTABLE);
+                playerGUID.Clear();
+                events.RescheduleEvent(2, 1min);
             }
         }
 
