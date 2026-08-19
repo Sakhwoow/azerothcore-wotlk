@@ -1712,6 +1712,13 @@ public:
             summons.Summon(summon);
         }
 
+        void JustDied(Unit* /*killer*/) override
+        {
+            if (InstanceScript* instance = me->GetInstanceScript())
+                if (Creature* crok = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_CROK_SCOURGEBANE)))
+                    crok->AI()->SetGUID(me->GetGUID(), ACTION_VRYKUL_DEATH);
+        }
+
         void Reset() override
         {
             summons.DespawnAll();
