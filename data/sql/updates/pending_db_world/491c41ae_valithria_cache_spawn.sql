@@ -1,5 +1,6 @@
 -- Add Cache of the Dreamwalker spawns for all difficulties in ICC (Valithria Dreamwalker encounter)
 -- spawnMask: 2=10N, 4=25N, 8=10H, 16=25H
+DELETE FROM `gameobject` WHERE `id` IN (201959, 202339, 202338, 202340);
 SET @OGUID := (SELECT MAX(guid) + 1 FROM gameobject);
 
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES
