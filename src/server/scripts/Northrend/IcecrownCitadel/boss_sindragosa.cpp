@@ -521,7 +521,6 @@ public:
                 case EVENT_TAIL_SMASH:
                     me->DisableRotate(true);
                     me->SetControlled(true, UNIT_STATE_ROOT);
-                    me->SendMovementFlagUpdate();
                     me->CastSpell(me->GetVictim(), SPELL_TAIL_SMASH, false);
                     events.DelayEventsToMax(1ms, 0);
                     events.ScheduleEvent(EVENT_UNROOT, 0ms);
@@ -530,7 +529,6 @@ public:
                 case EVENT_FROST_BREATH:
                     me->DisableRotate(true);
                     me->SetControlled(true, UNIT_STATE_ROOT);
-                    me->SendMovementFlagUpdate();
                     me->CastSpell(me->GetVictim(), _isThirdPhase ? SPELL_FROST_BREATH_P2 : SPELL_FROST_BREATH_P1, false);
                     events.DelayEventsToMax(1ms, 0);
                     events.ScheduleEvent(EVENT_UNROOT, 0ms);
