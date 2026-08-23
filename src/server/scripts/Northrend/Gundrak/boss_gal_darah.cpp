@@ -113,7 +113,14 @@ struct boss_gal_darah : public BossAI
         }, 15s, 18s);
 
         ScheduleTimedEvent(11s, 19s, [&] {
+            me->StopMoving();
+            me->SetReactState(REACT_PASSIVE);
             DoCastAOE(SPELL_WHIRLING_SLASH);
+            me->m_Events.AddEventAtOffset([this] {
+                me->SetReactState(REACT_AGGRESSIVE);
+                if (me->GetVictim())
+                    me->GetMotionMaster()->MoveChase(me->GetVictim());
+            }, 3s);
         }, 17s, 19s);
 
         me->m_Events.AddEventAtOffset([&] {

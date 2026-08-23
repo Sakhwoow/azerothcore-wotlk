@@ -107,6 +107,7 @@ public:
         }
 
         bool _secondEmerge;
+        bool _elementalKilled;
 
         void MoveInLineOfSight(Unit*  /*who*/) override
         {
@@ -140,6 +141,7 @@ public:
 
             SetInvincibility(true);
             _secondEmerge = false;
+            _elementalKilled = false;
         }
 
         void JustReachedHome() override
@@ -192,7 +194,10 @@ public:
         {
             summons.Despawn(summon);
             if (summon->GetEntry() == NPC_DRAKKARI_ELEMENTAL)
+            {
+                _elementalKilled = true;
                 me->KillSelf();
+            }
         }
 
         void SummonedCreatureDespawn(Creature* summon) override
@@ -200,6 +205,9 @@ public:
             summons.Despawn(summon);
             if (summon->GetEntry() == NPC_DRAKKARI_ELEMENTAL)
             {
+                // Elemental was killed in combat — Colossus dies via KillSelf(), skip restore
+                if (_elementalKilled)
+                    return;
                 me->SetHealth(me->GetMaxHealth() / 2);
                 me->RemoveUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
                 me->RemoveAurasDueToSpell(SPELL_FREEZE_ANIM);
