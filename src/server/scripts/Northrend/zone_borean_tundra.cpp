@@ -198,6 +198,42 @@ public:
 };
 
 /*######
+## npc_nerubar_sinkhole
+######*/
+
+enum NerubarSinkhole
+{
+    QUEST_BURY_COCKROACHES      = 11608,
+    SPELL_BURY_COCKROACH_CHARGE = 45503,
+};
+
+class npc_nerubar_sinkhole : public CreatureScript
+{
+public:
+    npc_nerubar_sinkhole() : CreatureScript("npc_nerubar_sinkhole") { }
+
+    struct npc_nerubar_sinkholeAI : public NullCreatureAI
+    {
+        npc_nerubar_sinkholeAI(Creature* creature) : NullCreatureAI(creature) { }
+
+        void SpellHit(Unit* caster, SpellInfo const* spell) override
+        {
+            if (spell->Id != SPELL_BURY_COCKROACH_CHARGE)
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (player && player->GetQuestStatus(QUEST_BURY_COCKROACHES) == QUEST_STATUS_INCOMPLETE)
+                player->KilledMonster(me->GetCreatureTemplate(), me->GetGUID());
+        }
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_nerubar_sinkholeAI(creature);
+    }
+};
+
+/*######
 ## npc_khunok_the_behemoth
 ######*/
 
@@ -1493,6 +1529,7 @@ void AddSC_borean_tundra()
 {
     RegisterSpellScript(spell_q11919_q11940_drake_hunt_aura);
     new npc_sinkhole_kill_credit();
+    new npc_nerubar_sinkhole();
     new npc_khunok_the_behemoth();
     RegisterCreatureAI(npc_nerubar_victim);
     RegisterSpellScript(spell_dispel_freed_soldier_debuff);
