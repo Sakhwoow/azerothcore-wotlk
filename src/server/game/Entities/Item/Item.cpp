@@ -404,6 +404,9 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
                 if (!isInTransaction)
                     CharacterDatabase.CommitTransaction(trans);
 
+                // Guard: ensure item is removed from the world before deletion.
+                if (IsInWorld())
+                    RemoveFromWorld();
                 delete this;
                 return;
             }
@@ -722,6 +725,11 @@ void Item::SetState(ItemUpdateState state, Player* forplayer)
             RemoveFromUpdateQueueOf(forplayer);
             forplayer->DeleteRefundReference(GetGUID());
         }
+        // Guard: if the item is still in the world (e.g. removed from m_items[] via
+        // Player::RemoveItem(update=false) but RemoveFromWorld was skipped), we must
+        // remove it from the world before deleting to avoid Object::~Object ABORT.
+        if (IsInWorld())
+            RemoveFromWorld();
         delete this;
         return;
     }
