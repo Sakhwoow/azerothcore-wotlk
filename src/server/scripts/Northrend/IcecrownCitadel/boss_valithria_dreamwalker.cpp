@@ -621,7 +621,7 @@ public:
         {
             summon->SetPhaseMask((summon->GetPhaseMask() & ~0x10), true); // must not be in dream phase
             if (summon->GetEntry() != NPC_SUPPRESSER)
-                if (Unit* target = SelectTargetFromPlayerList(200.0f))
+                if (Unit* target = SelectTargetFromPlayerList(200.0f, 70766)) // skip players in Dream State
                     summon->AI()->AttackStart(target);
         }
 
@@ -1070,7 +1070,7 @@ public:
         {
             if (me->GetInstanceScript() && me->GetInstanceScript()->GetBossState(DATA_VALITHRIA_DREAMWALKER) == DONE)
                 summon->DespawnOrUnsummon(1ms);
-            else if (Unit* target = SelectTargetFromPlayerList(200.0f))
+            else if (Unit* target = SelectTargetFromPlayerList(200.0f, 70766)) // skip players in Dream State
                 summon->AI()->AttackStart(target);
         }
 
