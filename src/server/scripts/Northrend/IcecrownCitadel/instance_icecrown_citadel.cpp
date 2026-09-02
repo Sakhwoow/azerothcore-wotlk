@@ -804,10 +804,26 @@ public:
                 case GO_CACHE_OF_THE_DREAMWALKER_25N:
                 case GO_CACHE_OF_THE_DREAMWALKER_10H:
                 case GO_CACHE_OF_THE_DREAMWALKER_25H:
+                {
+                    // SPELL_SPAWN_CHEST (71207) spawns all 4 difficulty variants via DBC effects.
+                    // Discard any variant that doesn't match the current instance difficulty.
+                    uint32 correctEntry;
+                    if (instance->Is25ManRaid())
+                        correctEntry = instance->IsHeroic() ? GO_CACHE_OF_THE_DREAMWALKER_25H : GO_CACHE_OF_THE_DREAMWALKER_25N;
+                    else
+                        correctEntry = instance->IsHeroic() ? GO_CACHE_OF_THE_DREAMWALKER_10H : GO_CACHE_OF_THE_DREAMWALKER_10N;
+
+                    if (go->GetEntry() != correctEntry)
+                    {
+                        go->DespawnOrUnsummon();
+                        break;
+                    }
+
                     if (Creature* valithria = instance->GetCreature(ValithriaDreamwalkerGUID))
                         go->SetLootRecipient(valithria);
                     go->RemoveGameObjectFlag(GO_FLAG_LOCKED | GO_FLAG_NOT_SELECTABLE | GO_FLAG_NODESPAWN);
                     break;
+                }
                 case GO_SCOURGE_TRANSPORTER_LK:
                     TheLichKingTeleportGUID = go->GetGUID();
                     if (GetBossState(DATA_PROFESSOR_PUTRICIDE) == DONE && GetBossState(DATA_BLOOD_QUEEN_LANA_THEL) == DONE && GetBossState(DATA_SINDRAGOSA) == DONE)
