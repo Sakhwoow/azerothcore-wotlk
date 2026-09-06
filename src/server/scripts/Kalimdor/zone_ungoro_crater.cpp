@@ -16,6 +16,7 @@
  */
 
 #include "CreatureScript.h"
+#include "ItemScript.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptedEscortAI.h"
@@ -160,6 +161,7 @@ enum Ringo
 
     SPELL_REVIVE_RINGO          = 15591,
     QUEST_A_LITTLE_HELP         = 4491,
+    NPC_RINGO                   = 9999,
     NPC_SPRAGGLE                = 9997
 };
 
@@ -241,7 +243,6 @@ public:
                 Talk(SAY_FAINT);
             }
 
-            //what does actually happen here? Emote? Aura?
             me->SetStandState(UNIT_STAND_STATE_SLEEP);
         }
 
@@ -337,8 +338,34 @@ public:
     };
 };
 
+class item_spraggle_canteen : public ItemScript
+{
+public:
+    item_spraggle_canteen() : ItemScript("item_spraggle_canteen") {}
+
+    bool OnUse(Player* player, Item* /*item*/, SpellCastTargets const& /*targets*/) override
+    {
+        Creature* ringo = player->FindNearestCreature(NPC_RINGO, 30.0f);
+        if (!ringo)
+            return false;
+
+        npc_ringo::npc_ringoAI* ringoAI = CAST_AI(npc_ringo::npc_ringoAI, ringo->AI());
+        if (!ringoAI)
+            return false;
+
+        if (ringoAI->HasFollowState(STATE_FOLLOW_INPROGRESS | STATE_FOLLOW_PAUSED))
+        {
+            ringoAI->ClearFaint();
+            return true;
+        }
+
+        return false;
+    }
+};
+
 void AddSC_ungoro_crater()
 {
     new npc_ame();
     new npc_ringo();
+    new item_spraggle_canteen();
 }
