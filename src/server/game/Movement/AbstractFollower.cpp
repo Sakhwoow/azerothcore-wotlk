@@ -28,5 +28,15 @@ void AbstractFollower::SetTarget(Unit* unit)
 
     _target = unit;
     if (_target)
+    {
+        // Don't register on a unit that is already being removed from world
+        // (RemoveAllFollowers has already run; touching its m_followingMe is
+        // use-after-free once the object is deleted from the map).
+        if (!_target->IsInWorld() || _target->IsDuringRemoveFromWorld())
+        {
+            _target = nullptr;
+            return;
+        }
         _target->FollowerAdded(this);
+    }
 }
