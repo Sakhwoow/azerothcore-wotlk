@@ -354,7 +354,7 @@ struct CaptureEYPointInfo
         _playersCount[TEAM_HORDE] = 0;
     }
 
-    Player* player = nullptr;
+    ObjectGuid _playerGuid;
     TeamId _ownerTeamId;
     int8 _barStatus;
     uint32 _areaTrigger;
