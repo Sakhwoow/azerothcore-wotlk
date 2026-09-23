@@ -862,6 +862,8 @@ void WorldSession::LogoutPlayer(bool save, bool redirecting)
         LOG_INFO("entities.player", "Account: {} (IP: {}) Logout Character:[{}] ({}) Level: {}",
             GetAccountId(), GetRemoteAddress(), _player->GetName(), _player->GetGUID().ToString(), _player->GetLevel());
 
+        ObjectGuid const playerGuid = _player->GetGUID();
+
         uint32 statementIndex = CHAR_UPD_ACCOUNT_ONLINE;
         uint32 statementParam = GetAccountId();
         sScriptMgr->OnDatabaseSelectIndexLogout(_player, statementIndex, statementParam);
@@ -884,8 +886,8 @@ void WorldSession::LogoutPlayer(bool save, bool redirecting)
         SendPacket(WorldPackets::Character::LogoutComplete().Write());
         LOG_DEBUG("network", "SESSION: Sent SMSG_LOGOUT_COMPLETE Message");
 
-        //! Since each account can only have one online character at any given time, ensure all characters for active account are marked as offline
-        if (!redirecting)
+        //! Mark all characters of the account offline, unless a script running several per account handles it instead
+        if (!redirecting && sScriptMgr->OnPlayerCanMarkAccountOffline(playerGuid, GetAccountId()))
         {
             CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CharacterDatabaseStatements(statementIndex));
             stmt->SetData(0, statementParam);
