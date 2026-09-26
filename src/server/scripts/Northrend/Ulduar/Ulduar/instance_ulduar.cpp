@@ -322,6 +322,20 @@ public:
                     vehicle->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
         }
 
+        // Keepers of defeated bosses not yet chosen to assist against Yogg-Saron
+        void SpawnObservationRingKeepers()
+        {
+            uint32 watchersMask =
+                GetPersistentData(PERSISTENT_DATA_WATCHERS_MASK);
+            for (uint8 i = KEEPER_FREYA; i <= KEEPER_THORIM; ++i)
+                if (IsBossDone(ObservationRingKeeperBoss[i])
+                    && !(watchersMask & (1 << i))
+                    && !GetObjectGuid(ObservationRingKeeperData[i]))
+                    instance->SummonCreature(
+                        ObservationRingKeeperEntry[i],
+                        ObservationRingKeepersPos[i]);
+        }
+
         void SpawnLeviathanOutro(bool justKilled)
         {
             if (_leviathanOutroSpawned)
@@ -504,16 +518,7 @@ public:
                 }
             }
 
-            // Spawn Observation Ring keepers for defeated bosses
-            uint32 watchersMask =
-                GetPersistentData(PERSISTENT_DATA_WATCHERS_MASK);
-            for (uint8 i = KEEPER_FREYA; i <= KEEPER_THORIM; ++i)
-                if (IsBossDone(ObservationRingKeeperBoss[i])
-                    && !(watchersMask & (1 << i))
-                    && !GetObjectGuid(ObservationRingKeeperData[i]))
-                    instance->SummonCreature(
-                        ObservationRingKeeperEntry[i],
-                        ObservationRingKeepersPos[i]);
+            SpawnObservationRingKeepers();
 
             uint32 algalonTimer =
                 GetPersistentData(PERSISTENT_DATA_ALGALON_TIMER);
@@ -623,6 +628,11 @@ public:
                             ObservationRingKeeperEntry[keeperIdx],
                             ObservationRingKeepersPos[keeperIdx]);
                     }
+                    break;
+                case BOSS_YOGGSARON:
+                    // Sara despawns the unchosen keepers on pull, bring them back after a wipe
+                    if (state == NOT_STARTED)
+                        SpawnObservationRingKeepers();
                     break;
                 default:
                     break;
