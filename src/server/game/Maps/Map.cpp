@@ -2984,7 +2984,11 @@ void Map::UpdateEncounterState(EncounterCreditType type, uint32 creditEntry, Uni
                 if (Group* grp = player->GetGroup())
                     if (grp->isLFGGroup())
                     {
-                        sLFGMgr->FinishDungeon(grp->GetGUID(), dungeonId, this);
+                        // Use the group's actual stored LFG dungeon ID so custom dungeon pools
+                        // (e.g. Timewalking IDs that differ from lastEncounterDungeon) also
+                        // trigger FinishDungeon correctly and prevent the Deserter debuff.
+                        uint32 grpDungeonId = sLFGMgr->GetDungeon(grp->GetGUID());
+                        sLFGMgr->FinishDungeon(grp->GetGUID(), grpDungeonId ? grpDungeonId : dungeonId, this);
                         return;
                     }
         }
