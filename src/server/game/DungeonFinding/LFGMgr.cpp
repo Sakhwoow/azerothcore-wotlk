@@ -2976,10 +2976,7 @@ namespace lfg
 
         for (LFGDungeonContainer::const_iterator itr = LfgDungeonStore.begin(); itr != LfgDungeonStore.end(); ++itr)
             if (itr->second.group == LFG_DUNGEON_GROUP_TIMEWALKING && itr->second.type == LFG_TYPE_RANDOM)
-            {
-                LOG_ERROR("lfg", "TWDEBUG SanitizeTimewalkingDungeonId: substituted in={} out={}", dungeonId, itr->second.id);
                 return itr->second.id;
-            }
 
         return dungeonId;
     }
