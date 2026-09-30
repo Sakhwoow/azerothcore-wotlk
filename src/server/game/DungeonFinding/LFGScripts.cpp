@@ -239,7 +239,18 @@ namespace lfg
             if (Player* leader = ObjectAccessor::FindConnectedPlayer(sLFGMgr->GetLeader(gguid)))
             {
                 sLFGMgr->SetDungeon(gguid, dungeonId);
-                leader->GetSession()->SendLfgOfferContinue(sLFGMgr->GetDungeon(gguid, false));
+
+                // Timewalking pool dungeons (LFGDungeonGroup 13) only exist in the SERVER's
+                // LFGDungeons.dbc; the client's copy carries just the random-queue wrapper
+                // entry (557), by design, so it can offer TW without listing 500-556 under
+                // "Specific Dungeon". SMSG_LFG_OFFER_CONTINUE sends this raw dungeon id to
+                // the client for it to look up and display — for a TW pool pick that lookup
+                // returns null, and the client dereferences it to null pointer crash.
+                // Skip the offer for these; the group just proceeds without the "continue
+                // queueing for the same dungeon" popup.
+                LFGDungeonData const* dungeonData = sLFGMgr->GetLFGDungeon(sLFGMgr->GetDungeon(gguid, true));
+                if (!dungeonData || dungeonData->group != 13)
+                    leader->GetSession()->SendLfgOfferContinue(sLFGMgr->GetDungeon(gguid, false));
             }
         }
 
