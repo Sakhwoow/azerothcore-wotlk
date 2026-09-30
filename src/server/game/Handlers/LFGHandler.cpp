@@ -559,6 +559,23 @@ void WorldSession::SendLfgUpdateProposal(lfg::LfgProposal const& proposal)
             dungeonEntry = (*playerDungeons.begin());
     }
 
+    // A Timewalking pool pick (lfg::LFG_DUNGEON_GROUP_TIMEWALKING) only exists in the
+    // server's LFGDungeons.dbc; the client's copy carries just the random-queue
+    // wrapper (557), so sending the raw pool id null-derefs the client on lookup.
+    // The "silent" branch above only substitutes on a brand-new proposal for a fresh
+    // group — a later silent update on an already-running TW group (e.g. after a
+    // member gets kicked and the proposal/group state gets resent) still reaches here
+    // with proposal.dungeonId raw. Force the substitution unconditionally for those.
+    if (lfg::LFGDungeonData const* dungeonData = sLFGMgr->GetLFGDungeon(dungeonEntry))
+    {
+        if (dungeonData->group == lfg::LFG_DUNGEON_GROUP_TIMEWALKING && dungeonData->type != lfg::LFG_TYPE_RANDOM)
+        {
+            lfg::LfgDungeonSet const& playerDungeons = sLFGMgr->GetSelectedDungeons(guid);
+            if (!playerDungeons.empty())
+                dungeonEntry = *playerDungeons.begin();
+        }
+    }
+
     dungeonEntry = sLFGMgr->GetLFGDungeonEntry(dungeonEntry);
 
     WorldPacket data(SMSG_LFG_PROPOSAL_UPDATE, 4 + 1 + 4 + 4 + 1 + 1 + proposal.players.size() * (4 + 1 + 1 + 1 + 1 + 1));
