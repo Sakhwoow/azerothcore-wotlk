@@ -154,10 +154,11 @@ namespace lfg
 
     // LFGDungeonGroup id (LFGDungeonData::group / dbc field 31) that server-side
     // data/dbc/LFGDungeons.dbc assigns to the Timewalking pool dungeons and their
-    // random-queue wrapper. Must match what the current server dbc actually has —
-    // it drifted from the client-side dbc's value (13) once before, which silently
-    // turned every check against it into dead code.
-    uint8 const LFG_DUNGEON_GROUP_TIMEWALKING = 14;
+    // random-queue wrapper. Must match what data/dbc/LFGDungeons.dbc actually has on
+    // disk (kept in sync with the client-side dbc's value, 13, for this field) —
+    // it drifted out of sync once before (server had 14), which silently turned
+    // every check against it into dead code.
+    uint8 const LFG_DUNGEON_GROUP_TIMEWALKING = 13;
 
     struct RBEntryInfo
     {
