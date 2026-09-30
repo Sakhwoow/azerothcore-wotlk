@@ -152,6 +152,13 @@ namespace lfg
         LFG_DUNGEON_CROWN_CHEMICAL_CO   = 288
     };
 
+    // LFGDungeonGroup id (LFGDungeonData::group / dbc field 31) that server-side
+    // data/dbc/LFGDungeons.dbc assigns to the Timewalking pool dungeons and their
+    // random-queue wrapper. Must match what the current server dbc actually has —
+    // it drifted from the client-side dbc's value (13) once before, which silently
+    // turned every check against it into dead code.
+    uint8 const LFG_DUNGEON_GROUP_TIMEWALKING = 14;
+
     struct RBEntryInfo
     {
         RBEntryInfo() = default;

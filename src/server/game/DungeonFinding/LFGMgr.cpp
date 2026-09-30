@@ -2420,14 +2420,14 @@ namespace lfg
 
             // SMSG_LFG_PLAYER_REWARD sends BOTH the random-queue wrapper entry and this
             // specific dungeon entry to the client, which looks both up in its own
-            // LFGDungeons.dbc. A Timewalking pool pick (LFGDungeonGroup 13, ids 500-556)
-            // only exists in the server's copy — the client's DBC carries just the
-            // wrapper (557) by design — so sending the raw pool id here crashes the
-            // client's reward popup on a null lookup. Send the wrapper for both fields
-            // in that case; it is the only entry the client can resolve either way.
+            // LFGDungeons.dbc. A Timewalking pool pick (LFG_DUNGEON_GROUP_TIMEWALKING,
+            // ids 500-556) only exists in the server's copy — the client's DBC carries
+            // just the wrapper (557) by design — so sending the raw pool id here crashes
+            // the client's reward popup on a null lookup. Send the wrapper for both
+            // fields in that case; it is the only entry the client can resolve either way.
             uint32 sDungeonEntry = GetDungeon(gguid, false);
             LFGDungeonData const* dungeonDoneData = GetLFGDungeon(GetDungeon(gguid, true));
-            if (dungeonDoneData && dungeonDoneData->group == 13)
+            if (dungeonDoneData && dungeonDoneData->group == LFG_DUNGEON_GROUP_TIMEWALKING)
                 sDungeonEntry = dungeon->Entry();
 
             LfgPlayerRewardData data = LfgPlayerRewardData(dungeon->Entry(), sDungeonEntry, done, quest);
@@ -2892,23 +2892,23 @@ namespace lfg
 
         // CMSG_LFG_GET_STATUS is sent by the client on every login/world-enter while it
         // has any LFG state, so whatever this returns gets pushed to the client every
-        // single time. A Timewalking pool pick (LFGDungeonGroup 13, ids 500-556) only
-        // exists in the server's LFGDungeons.dbc — the client's copy carries just the
-        // random-queue wrapper (557) by design — so if a player's stored selection ever
-        // ends up holding the raw pool id (e.g. inherited from the group via
-        // SetupGroupMember), the client crashes trying to look it up on every login
-        // until the in-memory LFG state is cleared by a restart. Substitute the wrapper
-        // for any pool id here so the client only ever sees ids it can resolve.
+        // single time. A Timewalking pool pick (LFG_DUNGEON_GROUP_TIMEWALKING, ids
+        // 500-556) only exists in the server's LFGDungeons.dbc — the client's copy
+        // carries just the random-queue wrapper (557) by design — so if a player's
+        // stored selection ever ends up holding the raw pool id (e.g. inherited from
+        // the group via SetupGroupMember), the client crashes trying to look it up on
+        // every login until the in-memory LFG state is cleared by a restart. Substitute
+        // the wrapper for any pool id here so the client only ever sees ids it can resolve.
         LfgDungeonSet dungeons = playerData.GetSelectedDungeons();
         uint32 twWrapperId = 0;
         for (LfgDungeonSet::iterator it = dungeons.begin(); it != dungeons.end();)
         {
             LFGDungeonData const* dungeon = GetLFGDungeon(*it);
-            if (dungeon && dungeon->group == 13 && dungeon->type != LFG_TYPE_RANDOM)
+            if (dungeon && dungeon->group == LFG_DUNGEON_GROUP_TIMEWALKING && dungeon->type != LFG_TYPE_RANDOM)
             {
                 if (!twWrapperId)
                     for (LFGDungeonContainer::const_iterator dItr = LfgDungeonStore.begin(); dItr != LfgDungeonStore.end(); ++dItr)
-                        if (dItr->second.group == 13 && dItr->second.type == LFG_TYPE_RANDOM)
+                        if (dItr->second.group == LFG_DUNGEON_GROUP_TIMEWALKING && dItr->second.type == LFG_TYPE_RANDOM)
                         {
                             twWrapperId = dItr->second.id;
                             break;
