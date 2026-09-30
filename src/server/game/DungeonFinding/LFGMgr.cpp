@@ -2971,22 +2971,13 @@ namespace lfg
     uint32 LFGMgr::SanitizeTimewalkingDungeonId(uint32 dungeonId)
     {
         LFGDungeonData const* dungeon = GetLFGDungeon(dungeonId);
-        LOG_ERROR("lfg", "TWDEBUG SanitizeTimewalkingDungeonId: in={} found={} group={} type={}",
-            dungeonId, dungeon ? 1 : 0, dungeon ? dungeon->group : 0, dungeon ? dungeon->type : 0);
         if (!dungeon || dungeon->group != LFG_DUNGEON_GROUP_TIMEWALKING || dungeon->type == LFG_TYPE_RANDOM)
-        {
-            LOG_ERROR("lfg", "TWDEBUG SanitizeTimewalkingDungeonId: passthrough out={}", dungeonId);
             return dungeonId;
-        }
 
         for (LFGDungeonContainer::const_iterator itr = LfgDungeonStore.begin(); itr != LfgDungeonStore.end(); ++itr)
             if (itr->second.group == LFG_DUNGEON_GROUP_TIMEWALKING && itr->second.type == LFG_TYPE_RANDOM)
-            {
-                LOG_ERROR("lfg", "TWDEBUG SanitizeTimewalkingDungeonId: substituted in={} out={}", dungeonId, itr->second.id);
                 return itr->second.id;
-            }
 
-        LOG_ERROR("lfg", "TWDEBUG SanitizeTimewalkingDungeonId: NO WRAPPER FOUND out={}", dungeonId);
         return dungeonId;
     }
 

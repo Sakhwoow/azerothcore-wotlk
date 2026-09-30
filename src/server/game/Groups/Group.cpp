@@ -1895,7 +1895,12 @@ void Group::SendUpdateToPlayer(ObjectGuid playerGUID, MemberSlot* slot)
     if (isLFGGroup())
     {
         data << uint8(sLFGMgr->GetState(m_guid) == lfg::LFG_STATE_FINISHED_DUNGEON ? 2 : 0); // FIXME - Dungeon save status? 2 = done
-        data << uint32(sLFGMgr->GetDungeon(m_guid));
+        // A Timewalking pool pick (lfg::LFG_DUNGEON_GROUP_TIMEWALKING) only exists in the
+        // server's LFGDungeons.dbc; the client's copy carries just the random-queue
+        // wrapper (557). SMSG_GROUP_LIST is sent on every roster change (join/leave/kick),
+        // not just LFG-specific packets, so this raw id was never covered by the LFG send
+        // sites' sanitization and crashed the client on the very next roster update.
+        data << uint32(sLFGMgr->SanitizeTimewalkingDungeonId(sLFGMgr->GetDungeon(m_guid)));
     }
 
     data << m_guid;
