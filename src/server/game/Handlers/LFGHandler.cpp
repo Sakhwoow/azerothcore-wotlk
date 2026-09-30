@@ -32,7 +32,7 @@ void BuildPlayerLockDungeonBlock(WorldPacket& data, lfg::LfgLockMap const& lock)
     data << uint32(lock.size());                           // Size of lock dungeons
     for (lfg::LfgLockMap::const_iterator it = lock.begin(); it != lock.end(); ++it)
     {
-        data << uint32(it->first);                         // Dungeon entry (id + type)
+        data << uint32(sLFGMgr->GetLFGDungeonEntry(sLFGMgr->SanitizeTimewalkingDungeonId(it->first & 0x00FFFFFF))); // Dungeon entry (id + type)
         data << uint32(it->second);                        // Lock status
     }
 }
@@ -330,7 +330,7 @@ void WorldSession::SendLfgUpdatePlayer(lfg::LfgUpdateData const& updateData)
 
         data << uint8(size);
         for (lfg::LfgDungeonSet::const_iterator it = updateData.dungeons.begin(); it != updateData.dungeons.end(); ++it)
-            data << uint32(*it);
+            data << sLFGMgr->SanitizeTimewalkingDungeonId(*it);
         data << updateData.comment;
     }
     SendPacket(&data);
@@ -374,7 +374,7 @@ void WorldSession::SendLfgUpdateParty(lfg::LfgUpdateData const& updateData)
 
         data << uint8(size);
         for (lfg::LfgDungeonSet::const_iterator it = updateData.dungeons.begin(); it != updateData.dungeons.end(); ++it)
-            data << uint32(*it);
+            data << sLFGMgr->SanitizeTimewalkingDungeonId(*it);
         data << updateData.comment;
     }
     SendPacket(&data);
@@ -407,7 +407,7 @@ void WorldSession::SendLfgRoleCheckUpdate(lfg::LfgRoleCheck const& roleCheck)
     data << uint8(dungeons.size());                        // Number of dungeons
     if (!dungeons.empty())
         for (lfg::LfgDungeonSet::iterator it = dungeons.begin(); it != dungeons.end(); ++it)
-            data << uint32(sLFGMgr->GetLFGDungeonEntry(*it)); // Dungeon
+            data << uint32(sLFGMgr->GetLFGDungeonEntry(sLFGMgr->SanitizeTimewalkingDungeonId(*it))); // Dungeon
 
     data << uint8(roleCheck.roles.size());                 // Players in group
     if (!roleCheck.roles.empty())
@@ -565,18 +565,8 @@ void WorldSession::SendLfgUpdateProposal(lfg::LfgProposal const& proposal)
     // The "silent" branch above only substitutes on a brand-new proposal for a fresh
     // group — a later silent update on an already-running TW group (e.g. after a
     // member gets kicked and the proposal/group state gets resent) still reaches here
-    // with proposal.dungeonId raw. Force the substitution unconditionally for those.
-    if (lfg::LFGDungeonData const* dungeonData = sLFGMgr->GetLFGDungeon(dungeonEntry))
-    {
-        if (dungeonData->group == lfg::LFG_DUNGEON_GROUP_TIMEWALKING && dungeonData->type != lfg::LFG_TYPE_RANDOM)
-        {
-            lfg::LfgDungeonSet const& playerDungeons = sLFGMgr->GetSelectedDungeons(guid);
-            if (!playerDungeons.empty())
-                dungeonEntry = *playerDungeons.begin();
-        }
-    }
-
-    dungeonEntry = sLFGMgr->GetLFGDungeonEntry(dungeonEntry);
+    // with proposal.dungeonId raw. SanitizeTimewalkingDungeonId catches those too.
+    dungeonEntry = sLFGMgr->GetLFGDungeonEntry(sLFGMgr->SanitizeTimewalkingDungeonId(dungeonEntry));
 
     WorldPacket data(SMSG_LFG_PROPOSAL_UPDATE, 4 + 1 + 4 + 4 + 1 + 1 + proposal.players.size() * (4 + 1 + 1 + 1 + 1 + 1));
     data << uint32(dungeonEntry);                          // Dungeon

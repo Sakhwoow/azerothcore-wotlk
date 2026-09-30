@@ -2425,10 +2425,7 @@ namespace lfg
             // just the wrapper (557) by design — so sending the raw pool id here crashes
             // the client's reward popup on a null lookup. Send the wrapper for both
             // fields in that case; it is the only entry the client can resolve either way.
-            uint32 sDungeonEntry = GetDungeon(gguid, false);
-            LFGDungeonData const* dungeonDoneData = GetLFGDungeon(GetDungeon(gguid, true));
-            if (dungeonDoneData && dungeonDoneData->group == LFG_DUNGEON_GROUP_TIMEWALKING)
-                sDungeonEntry = dungeon->Entry();
+            uint32 sDungeonEntry = GetLFGDungeonEntry(SanitizeTimewalkingDungeonId(GetDungeon(gguid, true)));
 
             LfgPlayerRewardData data = LfgPlayerRewardData(dungeon->Entry(), sDungeonEntry, done, quest);
             player->GetSession()->SendLfgPlayerReward(data);
@@ -2900,29 +2897,11 @@ namespace lfg
         // every login until the in-memory LFG state is cleared by a restart. Substitute
         // the wrapper for any pool id here so the client only ever sees ids it can resolve.
         LfgDungeonSet dungeons = playerData.GetSelectedDungeons();
-        uint32 twWrapperId = 0;
-        for (LfgDungeonSet::iterator it = dungeons.begin(); it != dungeons.end();)
-        {
-            LFGDungeonData const* dungeon = GetLFGDungeon(*it);
-            if (dungeon && dungeon->group == LFG_DUNGEON_GROUP_TIMEWALKING && dungeon->type != LFG_TYPE_RANDOM)
-            {
-                if (!twWrapperId)
-                    for (LFGDungeonContainer::const_iterator dItr = LfgDungeonStore.begin(); dItr != LfgDungeonStore.end(); ++dItr)
-                        if (dItr->second.group == LFG_DUNGEON_GROUP_TIMEWALKING && dItr->second.type == LFG_TYPE_RANDOM)
-                        {
-                            twWrapperId = dItr->second.id;
-                            break;
-                        }
+        LfgDungeonSet sanitized;
+        for (uint32 dungeonId : dungeons)
+            sanitized.insert(SanitizeTimewalkingDungeonId(dungeonId));
 
-                it = dungeons.erase(it);
-                if (twWrapperId)
-                    dungeons.insert(twWrapperId);
-            }
-            else
-                ++it;
-        }
-
-        return LfgUpdateData(LFG_UPDATETYPE_UPDATE_STATUS, playerData.GetState(), dungeons);
+        return LfgUpdateData(LFG_UPDATETYPE_UPDATE_STATUS, playerData.GetState(), sanitized);
     }
 
     bool LFGMgr::IsSeasonActive(uint32 dungeonId)
@@ -2987,6 +2966,19 @@ namespace lfg
                 return dungeon->Entry();
 
         return 0;
+    }
+
+    uint32 LFGMgr::SanitizeTimewalkingDungeonId(uint32 dungeonId)
+    {
+        LFGDungeonData const* dungeon = GetLFGDungeon(dungeonId);
+        if (!dungeon || dungeon->group != LFG_DUNGEON_GROUP_TIMEWALKING || dungeon->type == LFG_TYPE_RANDOM)
+            return dungeonId;
+
+        for (LFGDungeonContainer::const_iterator itr = LfgDungeonStore.begin(); itr != LfgDungeonStore.end(); ++itr)
+            if (itr->second.group == LFG_DUNGEON_GROUP_TIMEWALKING && itr->second.type == LFG_TYPE_RANDOM)
+                return itr->second.id;
+
+        return dungeonId;
     }
 
     LfgDungeonSet LFGMgr::GetRandomAndSeasonalDungeons(uint8 level, uint8 expansion)

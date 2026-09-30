@@ -599,6 +599,14 @@ namespace lfg
         void SetDungeon(ObjectGuid guid, uint32 dungeon);
         LFGDungeonData const* GetLFGDungeon(uint32 id);
 
+        /// Replaces a Timewalking pool dungeon id (LFG_DUNGEON_GROUP_TIMEWALKING, only
+        /// present in the server's own LFGDungeons.dbc) with the client-visible
+        /// random-queue wrapper id. Any other id is returned unchanged. Every packet
+        /// field that carries a plain dungeon id out to the client must be passed
+        /// through this first — the client's own dbc never loads the pool entries, so
+        /// sending one raw null-derefs the client on lookup.
+        uint32 SanitizeTimewalkingDungeonId(uint32 dungeonId);
+
     private:
         TeamId GetTeam(ObjectGuid guid);
         void RestoreState(ObjectGuid guid, char const* debugMsg);
