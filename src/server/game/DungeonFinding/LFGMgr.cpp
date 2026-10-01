@@ -2404,7 +2404,10 @@ namespace lfg
 
             // if we can take the quest, means that we haven't done this kind of "run", IE: First Heroic Random of Day.
             if (player->CanRewardQuest(quest, false))
+            {
+                LOG_ERROR("lfg", "TWTOKENDEBUG FinishDungeon: [{}] calling RewardQuest firstQuest={}", player->GetGUID().ToString(), quest->GetQuestId());
                 player->RewardQuest(quest, 0, nullptr, false, true);
+            }
             else
             {
                 done = true;
@@ -2412,6 +2415,7 @@ namespace lfg
                 if (!quest)
                     continue;
                 // we give reward without informing client (retail does this)
+                LOG_ERROR("lfg", "TWTOKENDEBUG FinishDungeon: [{}] calling RewardQuest otherQuest={}", player->GetGUID().ToString(), quest->GetQuestId());
                 player->RewardQuest(quest, 0, nullptr, false, true);
             }
 
