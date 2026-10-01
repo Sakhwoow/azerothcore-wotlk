@@ -2402,6 +2402,9 @@ namespace lfg
             if (!quest)
                 continue;
 
+            uint32 twTokenBefore = player->GetItemCount(9000051, true);
+            LOG_ERROR("lfg", "TWTOKENDEBUG FinishDungeon: [{}] tokenCount BEFORE reward = {}", player->GetGUID().ToString(), twTokenBefore);
+
             // if we can take the quest, means that we haven't done this kind of "run", IE: First Heroic Random of Day.
             if (player->CanRewardQuest(quest, false))
             {
@@ -2418,6 +2421,8 @@ namespace lfg
                 LOG_ERROR("lfg", "TWTOKENDEBUG FinishDungeon: [{}] calling RewardQuest otherQuest={}", player->GetGUID().ToString(), quest->GetQuestId());
                 player->RewardQuest(quest, 0, nullptr, false, true);
             }
+
+            LOG_ERROR("lfg", "TWTOKENDEBUG FinishDungeon: [{}] tokenCount AFTER reward = {}", player->GetGUID().ToString(), player->GetItemCount(9000051, true));
 
             // Give rewards
             LOG_DEBUG("lfg", "LFGMgr::FinishDungeon: [{}] done dungeon {}, {} previously done.", player->GetGUID().ToString(), GetDungeon(gguid), done ? " " : " not");
