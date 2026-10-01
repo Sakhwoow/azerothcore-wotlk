@@ -733,8 +733,6 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
                 ItemPosCountVec dest;
                 if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, quest->RewardItemIdCount[i]) == EQUIP_ERR_OK)
                 {
-                    LOG_ERROR("lfg", "TWTOKENDEBUG RewardQuest: [{}] quest={} itemId={} requestedCount={} slot={}",
-                        GetGUID().ToString(), quest_id, itemId, quest->RewardItemIdCount[i], i);
                     Item* item = StoreNewItem(dest, itemId, true);
                     SendNewItem(item, quest->RewardItemIdCount[i], true, false, false, false);
 
