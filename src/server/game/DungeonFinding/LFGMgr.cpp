@@ -1718,7 +1718,16 @@ namespace lfg
                 if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
                 {
                     Group* group = player->GetGroup();
-                    if (!group || (groupGUID && groupGUID != group->GetGUID()))
+                    // A player with no group at all is a solo filler being matched in to
+                    // round out the proposal (e.g. a premade party short one or more
+                    // members) -- that alone must not disqualify reusing the premade
+                    // party's existing group. Only a genuine conflict (two proposal
+                    // members already in two DIFFERENT groups) should fall back to the
+                    // full teardown/rebuild path below.
+                    if (!group)
+                        continue;
+
+                    if (groupGUID && groupGUID != group->GetGUID())
                     {
                         isPremadeGroup = false;
                         break;
