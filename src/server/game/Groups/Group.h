@@ -153,7 +153,7 @@ public:
     Roll(ObjectGuid _guid, LootItem const& li);
     ~Roll();
     void setLoot(Loot* pLoot);
-    Loot* getLoot();
+    Loot* getLoot() const;
     void targetObjectBuildLink();
 
     ObjectGuid itemGUID;

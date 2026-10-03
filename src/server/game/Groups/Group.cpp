@@ -59,7 +59,7 @@ void Roll::setLoot(Loot* pLoot)
     link(pLoot, this);
 }
 
-Loot* Roll::getLoot()
+Loot* Roll::getLoot() const
 {
     return getTarget();
 }
