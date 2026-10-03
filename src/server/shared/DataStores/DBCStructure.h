@@ -645,14 +645,14 @@ enum CharSectionType
 
 struct CharSectionsEntry
 {
-	//uint32 Id;
-	uint32 Race;
-	uint32 Gender;
-	uint32 GenType;
-	//char* TexturePath[3];
+	//uint32 ID;
+	uint32 RaceID;
+	uint32 SexID;
+	uint32 BaseSection;
+	//char const* TextureName[3];
 	uint32 Flags;
-	uint32 Type;
-	uint32 Color;
+	uint32 VariationIndex;
+	uint32 ColorIndex;
 };
 
 struct CharTitlesEntry
