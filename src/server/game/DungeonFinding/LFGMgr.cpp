@@ -1709,6 +1709,7 @@ namespace lfg
         ASSERT(dungeon);
 
         bool isPremadeGroup = false;
+        Group* premadeGroup = nullptr;
         Group* grp = proposal.group ? sGroupMgr->GetGroupByGUID(proposal.group.GetCounter()) : nullptr;
         if (!grp)
         {
@@ -1734,12 +1735,20 @@ namespace lfg
                     }
 
                     groupGUID = group->GetGUID();
+                    premadeGroup = group;
                     isPremadeGroup = true;
                 }
             }
         }
 
         ObjectGuid oldGroupGUID;
+        if (isPremadeGroup)
+        {
+            oldGroupGUID = premadeGroup->GetGUID();
+            grp = premadeGroup;
+            grp->ConvertToLFG(false);
+            SetState(grp->GetGUID(), LFG_STATE_PROPOSAL);
+        }
         bool hasRandomLfgMember = proposal.group.IsEmpty();
         for (LfgGuidList::const_iterator it = players.begin(); it != players.end(); ++it)
         {
@@ -1749,13 +1758,6 @@ namespace lfg
                 continue;
 
             Group* group = player->GetGroup();
-            if (isPremadeGroup && !grp)
-            {
-                oldGroupGUID = group->GetGUID();
-                grp = group;
-                grp->ConvertToLFG(false);
-                SetState(grp->GetGUID(), LFG_STATE_PROPOSAL);
-            }
 
             if (auto const proposalPlayer = proposal.players.find(pguid); proposalPlayer != proposal.players.end())
             {
