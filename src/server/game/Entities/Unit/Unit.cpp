@@ -7339,21 +7339,6 @@ ReputationRank Unit::GetFactionReactionTo(FactionTemplateEntry const* factionTem
     return REP_NEUTRAL;
 }
 
-ReputationRank Unit::GetFactionReactionTo(FactionTemplateEntry const* factionTemplateEntry, FactionTemplateEntry const* targetFactionTemplateEntry)
-{
-    if (!factionTemplateEntry || !targetFactionTemplateEntry)
-        return REP_NEUTRAL;
-    if (factionTemplateEntry->IsHostileTo(*targetFactionTemplateEntry))
-        return REP_HOSTILE;
-    if (factionTemplateEntry->IsFriendlyTo(*targetFactionTemplateEntry))
-        return REP_FRIENDLY;
-    if (targetFactionTemplateEntry->IsFriendlyTo(*factionTemplateEntry))
-        return REP_FRIENDLY;
-    if (factionTemplateEntry->factionFlags & FACTION_TEMPLATE_FLAG_HATES_ALL_EXCEPT_FRIENDS)
-        return REP_HOSTILE;
-    return REP_NEUTRAL;
-}
-
 bool Unit::IsHostileTo(Unit const* unit) const
 {
     return GetReactionTo(unit) <= REP_HOSTILE;
