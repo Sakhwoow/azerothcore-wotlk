@@ -248,7 +248,15 @@ public:
             case NPC_VALITHRIA_DREAMWALKER:
                 if (InstanceScript* instance = creature->GetInstanceScript())
                     instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, creature);
-                break;
+                // Valithria never actually dies (DamageTaken clamps lethal damage to 0 and
+                // routes here instead via ACTION_DEATH on a wipe), so unlike a normal mob she
+                // never goes through EnterEvadeMode()/death-respawn -- the only other callers
+                // of AI()->Reset(). Without resetting her here too, she keeps whatever near-0
+                // HP DamageTaken() left her at, and the next pull starts healing her from that
+                // instead of the scripted 50%.
+                if (creature->IsAlive())
+                    creature->AI()->Reset();
+                return;
             case NPC_THE_LICH_KING_VALITHRIA:
                 if (creature->IsAlive())
                     creature->AI()->Reset();
