@@ -3050,6 +3050,17 @@ public:
                         FrostwingGauntletRespawner respawner;
                         Acore::CreatureWorker<FrostwingGauntletRespawner> worker(crok, respawner);
                         Cell::VisitObjects(crok, worker, 333.0f);
+
+                        // Svalna takes over and advances down the corridor towards Valithria's
+                        // room as the gauntlet progresses, so by the time of a wipe she can
+                        // easily be further than 333y from Crok's corpse (where he fell early
+                        // in the fight) - the sweep above would then silently miss her and
+                        // leave her in whatever state the wipe caught her in. Reset her
+                        // directly through her own tracked GUID instead of relying on distance
+                        // from Crok at all.
+                        if (Creature* svalna = ObjectAccessor::GetCreature(*player, instance->GetGuidData(DATA_SISTER_SVALNA)))
+                            respawner(svalna);
+
                         return true;
                     }
                     else
