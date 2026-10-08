@@ -156,7 +156,21 @@ public:
             events.ScheduleEvent(EVENT_COLOSSUS_MIGHTY_BLOW, 10s);
             events.ScheduleEvent(EVENT_COLOSSUS_MORTAL_STRIKE, 7s);
 
+            // Both thresholds are driven by BossAI::DamageTaken, which runs on every hit
+            // regardless of UNIT_FLAG_NOT_SELECTABLE (that flag only blocks player targeting,
+            // not damage) - so lingering DoTs/AoE ticking on the Colossus while the first
+            // elemental is still out can push health past the 2% mark before that elemental
+            // ever merges back. Without this guard that fires a second SPELL_EMERGE_SUMMON on
+            // top of the still-active first elemental: two Drakkari Elementals end up alive at
+            // once, and whichever one happens to despawn/merge first resets the Colossus back
+            // to 50% HP and re-selectable (SummonedCreatureDespawn doesn't know which emerge it
+            // belongs to) while the other elemental is still wandering the instance - the
+            // "stuck, unkillable elemental, Colossus never attackable again" state reported on
+            // the forum. Skipping an emerge that can't start cleanly just lets the Colossus take
+            // the hit as normal damage instead - JustDied() still ends the encounter normally.
             ScheduleHealthCheckEvent(51, [&] {
+                if (me->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE))
+                    return;
                 me->CastSpell(me, SPELL_EMERGE, false);
                 me->CastSpell(me, SPELL_EMERGE_SUMMON, true);
                 me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
@@ -164,6 +178,8 @@ public:
             });
 
             ScheduleHealthCheckEvent(2, [&] {
+                if (me->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE))
+                    return;
                 _secondEmerge = true;
                 me->CastSpell(me, SPELL_EMERGE, false);
                 me->CastSpell(me, SPELL_EMERGE_SUMMON, true);
