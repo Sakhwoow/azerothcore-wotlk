@@ -57,6 +57,7 @@ enum Misc
     EVENT_COLOSSUS_MIGHTY_BLOW          = 1,
     EVENT_COLOSSUS_MORTAL_STRIKE        = 2,
     EVENT_COLOSSUS_START_FIGHT          = 3,
+    EVENT_COLOSSUS_HEALTH_CHECK         = 4,
 
     EVENT_ELEMENTAL_HEALTH              = 10,
     EVENT_ELEMENTAL_SURGE               = 11,
@@ -106,6 +107,7 @@ public:
         {
         }
 
+        bool _firstEmergeDone;
         bool _secondEmerge;
         bool _elementalKilled;
 
@@ -140,6 +142,7 @@ public:
             }
 
             SetInvincibility(true);
+            _firstEmergeDone = false;
             _secondEmerge = false;
             _elementalKilled = false;
         }
@@ -156,36 +159,37 @@ public:
             events.ScheduleEvent(EVENT_COLOSSUS_MIGHTY_BLOW, 10s);
             events.ScheduleEvent(EVENT_COLOSSUS_MORTAL_STRIKE, 7s);
 
-            // Both thresholds are driven by BossAI::DamageTaken, which runs on every hit
-            // regardless of UNIT_FLAG_NOT_SELECTABLE (that flag only blocks player targeting,
-            // not damage) - so lingering DoTs/AoE ticking on the Colossus while the first
-            // elemental is still out can push health past the 2% mark before that elemental
-            // ever merges back. Without this guard that fires a second SPELL_EMERGE_SUMMON on
-            // top of the still-active first elemental: two Drakkari Elementals end up alive at
-            // once, and whichever one happens to despawn/merge first resets the Colossus back
-            // to 50% HP and re-selectable (SummonedCreatureDespawn doesn't know which emerge it
-            // belongs to) while the other elemental is still wandering the instance - the
-            // "stuck, unkillable elemental, Colossus never attackable again" state reported on
-            // the forum. Skipping an emerge that can't start cleanly just lets the Colossus take
-            // the hit as normal damage instead - JustDied() still ends the encounter normally.
-            ScheduleHealthCheckEvent(51, [&] {
-                if (me->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE))
-                    return;
-                me->CastSpell(me, SPELL_EMERGE, false);
-                me->CastSpell(me, SPELL_EMERGE_SUMMON, true);
-                me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
-                me->GetMotionMaster()->Clear();
-            });
+            // Polled from the regular EventMap instead of BossAI::ScheduleHealthCheckEvent on
+            // purpose - that engine helper (ScriptedCreature.cpp) marks a threshold PROCESSED
+            // and permanently removes it from its list as soon as its callback runs, even if the
+            // callback's own UNIT_FLAG_NOT_SELECTABLE guard made it return without emerging
+            // (e.g. a lingering DoT ticks the Colossus past the 2% mark while the first elemental
+            // is still out - that flag only blocks player targeting, not damage). The guard
+            // stopped the double-emerge, but the 2% check was still silently consumed and could
+            // never fire again for the rest of the fight - Colossus stuck forever just above 0%
+            // (SetInvincibility floors real damage at 1 HP), no second elemental ever spawns.
+            // A plain poll never "consumes" anything: UpdateAI already skips events.Update()
+            // entirely while UNIT_FLAG_NOT_SELECTABLE is set, so this naturally pauses during an
+            // active emerge and simply re-checks health on the next tick once it clears, instead
+            // of needing the engine to remember a pending threshold across that gap.
+            events.ScheduleEvent(EVENT_COLOSSUS_HEALTH_CHECK, 500ms);
+        }
 
-            ScheduleHealthCheckEvent(2, [&] {
-                if (me->HasUnitFlag(UNIT_FLAG_NOT_SELECTABLE))
-                    return;
+        void CheckEmergeThreshold()
+        {
+            uint8 threshold = _firstEmergeDone ? 2 : 51;
+            if (!me->HealthBelowPct(threshold))
+                return;
+
+            if (_firstEmergeDone)
                 _secondEmerge = true;
-                me->CastSpell(me, SPELL_EMERGE, false);
-                me->CastSpell(me, SPELL_EMERGE_SUMMON, true);
-                me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
-                me->GetMotionMaster()->Clear();
-            });
+            else
+                _firstEmergeDone = true;
+
+            me->CastSpell(me, SPELL_EMERGE, false);
+            me->CastSpell(me, SPELL_EMERGE_SUMMON, true);
+            me->SetUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
+            me->GetMotionMaster()->Clear();
         }
 
         void JustSummoned(Creature* summon) override
@@ -254,6 +258,10 @@ public:
                 case EVENT_COLOSSUS_MORTAL_STRIKE:
                     DoCastVictim(SPELL_MORTAL_STRIKE);
                     events.ScheduleEvent(EVENT_COLOSSUS_MORTAL_STRIKE, 7s);
+                    break;
+                case EVENT_COLOSSUS_HEALTH_CHECK:
+                    CheckEmergeThreshold();
+                    events.ScheduleEvent(EVENT_COLOSSUS_HEALTH_CHECK, 500ms);
                     break;
             }
 
