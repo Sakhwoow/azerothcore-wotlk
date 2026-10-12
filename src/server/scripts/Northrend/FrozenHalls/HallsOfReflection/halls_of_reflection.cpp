@@ -1618,7 +1618,18 @@ struct npc_hor_lich_king : public NullCreatureAI
                 if (me->isActiveObject()) // during fight
                 {
                     if (Creature* leader = instance->GetCreature(NPC_SYLVANAS_PART2))
-                        if (leader->IsAlive() && leader->GetPositionX() < 5575.0f && me->GetExactDist2d(leader) <= 12.5f && !leader->HasAura(SPELL_HARVEST_SOUL) && me->HasAura(SPELL_REMORSELESS_WINTER))
+                    {
+                        // Leader already dead (e.g. caught by a previous Harvest Soul) - reset the
+                        // phase immediately instead of only when the instance empties, so the group
+                        // doesn't get stuck with a permanently dead escort NPC.
+                        if (!leader->IsAlive())
+                        {
+                            summons.DespawnAll();
+                            instance->SetData(ACTION_STOP_LK_FIGHT, 1);
+                            events.ScheduleEvent(EVENT_LK_CHECK_COMBAT, 1s);
+                            break;
+                        }
+                        if (leader->GetPositionX() < 5575.0f && me->GetExactDist2d(leader) <= 12.5f && !leader->HasAura(SPELL_HARVEST_SOUL) && me->HasAura(SPELL_REMORSELESS_WINTER))
                         {
                             me->GetMotionMaster()->MovementExpired();
                             me->StopMoving();
@@ -1629,6 +1640,7 @@ struct npc_hor_lich_king : public NullCreatureAI
                             events.ScheduleEvent(EVENT_LK_CHECK_COMBAT, 1s);
                             break;
                         }
+                    }
                     if (instance->instance->HavePlayers())
                     {
                         me->SetInCombatWithZone();
@@ -1791,6 +1803,7 @@ public:
             switch (actionId)
             {
                 case ACTION_START_INTRO:
+                    me->SetImmuneToAll(false);
                     events.ScheduleEvent(EVENT_LK_SAY_AGGRO, 0ms);
                     events.ScheduleEvent(EVENT_LK_BATTLE_1, 2s + 500ms);
                     events.ScheduleEvent(EVENT_LK_BATTLE_2, 3s);

@@ -278,6 +278,9 @@ public:
                     creature->SetVisible(false);
                 if (!GetPersistentData(PERSISTENT_DATA_LK_INTRO))
                 {
+                    // Dormant at 5% health until the LK intro cinematic starts: immune so stray AoE
+                    // from the Frostsworn General fight in the same room can't kill her beforehand.
+                    creature->SetImmuneToAll(true);
                     creature->SetSheath(SHEATH_STATE_MELEE);
                     creature->SetUInt32Value(UNIT_NPC_EMOTESTATE, GetTeamIdInInstance() == TEAM_ALLIANCE ? EMOTE_ONESHOT_ATTACK2HTIGHT : EMOTE_ONESHOT_ATTACK1H);
                     creature->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER);
@@ -285,6 +288,7 @@ public:
                 }
                 else if (GetBossState(DATA_LICH_KING) != DONE)
                 {
+                    creature->SetImmuneToAll(false);
                     creature->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
                     creature->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
                     creature->UpdatePosition(LeaderEscapePos, true);
@@ -292,6 +296,7 @@ public:
                 }
                 else
                 {
+                    creature->SetImmuneToAll(false);
                     creature->UpdatePosition(PathWaypoints[PATH_WP_COUNT - 1], true);
                     creature->StopMovingOnCurrentPos();
                 }
