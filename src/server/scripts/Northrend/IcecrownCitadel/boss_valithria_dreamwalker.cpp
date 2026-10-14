@@ -313,6 +313,21 @@ public:
             me->SetReactState(REACT_PASSIVE);
         }
 
+        // Valithria never really dies (DamageTaken clamps lethal damage to 0), but a stale
+        // creature_respawn row left by an unrelated instance unload/reset can still mark her
+        // isDead() true on grid load. That skips two things: UnitAI::InitializeAI() won't call
+        // Reset() (so she never gets set back to the scripted 50%), and IsAlive() stays false
+        // even after a manual SetHealth (it checks deathState, not the health value), which
+        // would leave her un-healable/un-damageable on top of showing the wrong HP. Promote her
+        // to a clean Alive state first -- same transition Creature::Update() uses for a normal
+        // respawn -- then Reset() puts her at the intended 50%.
+        void InitializeAI() override
+        {
+            if (!me->IsAlive())
+                me->setDeathState(DeathState::JustRespawned);
+            Reset();
+        }
+
         void Reset() override
         {
             _events.Reset();
@@ -511,6 +526,16 @@ public:
     {
         npc_green_dragon_combat_triggerAI(Creature* creature) : BossAI(creature, DATA_VALITHRIA_DREAMWALKER)
         {
+        }
+
+        // Same stale-respawn-row risk as boss_valithria_dreamwalkerAI (see its InitializeAI) --
+        // this trigger is the one that summons the whole encounter population in Reset(), so
+        // skipping it also leaves the fight's trash/archmages missing on top of the HP bug.
+        void InitializeAI() override
+        {
+            if (!me->IsAlive())
+                me->setDeathState(DeathState::JustRespawned);
+            Reset();
         }
 
         void Reset() override
