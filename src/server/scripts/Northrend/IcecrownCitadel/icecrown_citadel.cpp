@@ -1069,8 +1069,14 @@ public:
         {
         }
 
+        // Her spawntimesecs equals the instance reset period, so a forced despawn can leave a
+        // creature_respawn row a year ahead that loads her dead. She must only stay dead once she
+        // was really killed (boss DONE); otherwise the gauntlet has no final boss.
         void InitializeAI() override
         {
+            if (me->isDead() && instance->GetBossState(DATA_SISTER_SVALNA) != DONE)
+                me->setDeathState(DeathState::JustRespawned);
+
             if (!me->isDead())
                 Reset();
             me->SetReactState(REACT_PASSIVE);

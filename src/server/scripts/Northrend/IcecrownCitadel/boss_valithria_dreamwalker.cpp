@@ -354,6 +354,19 @@ public:
             if (action != ACTION_ENTER_COMBAT)
                 return;
 
+            // The fight must start from the scripted 50% no matter what happened to her between
+            // grid load and the pull (stale respawn row, stat rescaling by modules, a corpse state):
+            // players reported her at 0% on a first pull even with the InitializeAI() guard above.
+            if (!me->IsAlive())
+                me->Respawn(true);
+            uint32 const startHealth = me->GetMaxHealth() * 0.5f;
+            if (me->GetHealth() != startHealth)
+            {
+                LOG_WARN("scripts.ai", "Valithria Dreamwalker engaged with {} / {} HP, restoring to 50%",
+                    me->GetHealth(), me->GetMaxHealth());
+                me->SetHealth(startHealth);
+            }
+
             _instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me);
             _events.Reset();
             _events.ScheduleEvent(EVENT_INTRO_TALK, 15s);
@@ -1097,6 +1110,22 @@ public:
         {
             _events.Reset();
             _events.ScheduleEvent(EVENT_GUT_SPRAY, 10s, 13s);
+        }
+
+        // Players report abominations that appear as corpses or with 1 HP, untargetable and
+        // unkillable, while wiping the raid. They are always spawned for a live fight, so any
+        // such state is wrong: log it (to find the source) and bring them to a normal state.
+        void IsSummonedBy(WorldObject* /*summoner*/) override
+        {
+            if (me->IsAlive() && me->GetHealth() > 1 && me->GetHealth() == me->GetMaxHealth())
+                return;
+
+            LOG_WARN("scripts.ai", "Gluttonous Abomination {} appeared with {} / {} HP, alive: {}",
+                me->GetGUID().ToString(), me->GetHealth(), me->GetMaxHealth(), me->IsAlive());
+
+            if (!me->IsAlive())
+                me->setDeathState(DeathState::JustRespawned);
+            me->SetFullHealth();
         }
 
         void JustSummoned(Creature* summon) override
