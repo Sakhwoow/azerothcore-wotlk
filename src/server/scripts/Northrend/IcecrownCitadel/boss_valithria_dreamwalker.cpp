@@ -321,10 +321,19 @@ public:
         // would leave her un-healable/un-damageable on top of showing the wrong HP. Promote her
         // to a clean Alive state first -- same transition Creature::Update() uses for a normal
         // respawn -- then Reset() puts her at the intended 50%.
+        // Only while the encounter is not won: after a win she and her combat trigger are dead
+        // on purpose, and reviving them on grid load reset the encounter to NOT_STARTED, which
+        // made the Lich King teleport the whole raid out on pull (CheckRequiredBosses).
         void InitializeAI() override
         {
             if (!me->IsAlive())
+            {
+                if (_instance->GetBossState(DATA_VALITHRIA_DREAMWALKER) == DONE)
+                    return;
+
                 me->setDeathState(DeathState::JustRespawned);
+            }
+
             Reset();
         }
 
@@ -544,15 +553,27 @@ public:
         // Same stale-respawn-row risk as boss_valithria_dreamwalkerAI (see its InitializeAI) --
         // this trigger is the one that summons the whole encounter population in Reset(), so
         // skipping it also leaves the fight's trash/archmages missing on top of the HP bug.
+        // A won encounter is left alone (see boss_valithria_dreamwalkerAI::InitializeAI).
         void InitializeAI() override
         {
             if (!me->IsAlive())
+            {
+                if (instance->GetBossState(DATA_VALITHRIA_DREAMWALKER) == DONE)
+                    return;
+
                 me->setDeathState(DeathState::JustRespawned);
+            }
+
             Reset();
         }
 
         void Reset() override
         {
+            // _Reset() would set the encounter back to NOT_STARTED and the summons below would
+            // bring the whole fight back: never after a win.
+            if (instance->GetBossState(DATA_VALITHRIA_DREAMWALKER) == DONE)
+                return;
+
             _Reset();
             me->SetReactState(REACT_PASSIVE);
             summons.DespawnAll();
